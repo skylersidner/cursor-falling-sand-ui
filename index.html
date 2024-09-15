@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Falling Sand Simulator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body class="dark-theme">
+    <div class="container">
+        <div class="toolbar">
+            <label for="width">Width:</label>
+            <input type="number" id="width" min="400" max="800" value="400" step="1">
+            <label for="height">Height:</label>
+            <input type="number" id="height" min="400" max="800" value="400" step="1">
+            <label for="gravity">Gravity:</label>
+            <input type="number" id="gravity" min="0.1" max="1.0" value="1.0" step="0.1">
+            <div class="color-inputs">
+                <label for="red">R:</label>
+                <input type="number" id="red" min="0" max="255" value="194" step="1">
+                <label for="green">G:</label>
+                <input type="number" id="green" min="0" max="255" value="178" step="1">
+                <label for="blue">B:</label>
+                <input type="number" id="blue" min="0" max="255" value="128" step="1">
+            </div>
+            <div class="theme-selector">
+                <label for="theme">Theme:</label>
+                <select id="theme">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                </select>
+            </div>
+        </div>
+        <canvas id="sandCanvas"></canvas>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
