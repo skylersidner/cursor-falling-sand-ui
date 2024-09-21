@@ -1,0 +1,24 @@
+.app {
+  display: grid;
+  grid-template-areas: 
+    'title'
+    'toolbar'
+    'sandbox';
+  height: 100vh;
+  padding: 8px;
+
+  .title {
+    grid-area: title;
+    grid-row: 1;
+  }
+  
+  .toolbar {
+    grid-area: toolbar;
+    grid-row: 2;
+  }
+  
+  .sandbox {
+    grid-area: sandbox;
+    grid-row: 3 / 12;
+  }
+}
