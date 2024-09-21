@@ -1,6 +1,19 @@
-import React, { useEffect, useRef, useCallback } from 'react';
-import { SandSimulation } from '../../models/SandSimulation';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
+import { SandSimulation, SimulationConfig } from '../../models/SandSimulation';
 import './SandCanvas.scss';
+import SandToolbar from '../SandToolbar/SandToolbar';
+
+const defaultConfig: SimulationConfig = {
+  width: 400,
+  height: 400,
+  particleSize: 4,
+  gravity: 1,
+  sandColorRed: 194,
+  sandColorGreen: 178,
+  sandColorBlue: 128,
+  backgroundColor: '#87CEEB',
+  particleRate: 50
+};
 
 const SandCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -8,26 +21,28 @@ const SandCanvas: React.FC = () => {
   const isDrawingRef = useRef(false);
   const lastPositionRef = useRef<{ x: number; y: number } | null>(null);
   const particleIntervalRef = useRef<number | null>(null);
+  const [config, setConfig] = useState<SimulationConfig | null>(null);
 
   useEffect(() => {
     if (canvasRef.current) {
-      simulationRef.current = new SandSimulation(canvasRef.current, {
-        width: 400,
-        height: 400,
-        particleSize: 4,
-        gravity: 1,
-        sandColor: '#c2b280',
-        backgroundColor: '#87CEEB',
-        particleRate: 50
-      });
+      simulationRef.current = new SandSimulation(canvasRef.current, defaultConfig);
+      setConfig(simulationRef.current.config);
     }
 
     return () => {
       simulationRef.current?.stopAnimation();
-      if (particleIntervalRef.current) {
-        clearInterval(particleIntervalRef.current);
-      }
     };
+  }, []);
+
+  const updateConfig = useCallback((newConfig: Partial<SimulationConfig>) => {
+    setConfig(prevConfig => {
+      if (prevConfig) {
+        const updatedConfig = { ...prevConfig, ...newConfig };
+        simulationRef.current?.updateConfig(updatedConfig);
+        return updatedConfig;
+      }
+      return prevConfig;
+    });
   }, []);
 
   const addParticle = useCallback(() => {
@@ -79,13 +94,20 @@ const SandCanvas: React.FC = () => {
   }, [stopDrawing]);
 
   return (
-    <canvas
-      ref={canvasRef}
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
-    />
+    <div className="sand-simulation">
+      {config && updateConfig && (
+        <SandToolbar config={config} updateConfig={updateConfig} />
+      )}
+      <canvas
+        ref={canvasRef}
+        width={config?.width || defaultConfig.width}
+        height={config?.height || defaultConfig.height}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+      />
+    </div>
   );
 };
 

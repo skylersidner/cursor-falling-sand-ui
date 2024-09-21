@@ -11,7 +11,7 @@ function App() {
           <h1>Falling Sand Simulator</h1>
         </div>
         <div className="toolbar">
-          <SandToolbar />
+          {/* <SandToolbar /> */}
         </div>
         <div className="sandbox">
           <SandCanvas />
