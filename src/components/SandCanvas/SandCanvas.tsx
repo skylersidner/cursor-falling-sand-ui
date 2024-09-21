@@ -1,128 +1,90 @@
 import React, { useEffect, useRef, useCallback } from 'react';
+import { SandSimulation } from '../../models/SandSimulation';
 import './SandCanvas.scss';
-
-interface Particle {
-  x: number;
-  y: number;
-  color: string;
-}
-
-class SandSimulation {
-  particles: Particle[] = [];
-  canvas: HTMLCanvasElement | null = null;
-  ctx: CanvasRenderingContext2D | null = null;
-  animationFrameId: number | null = null;
-  isAnimating = false;
-
-  constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d');
-  }
-
-  addParticle(x: number, y: number) {
-    const particle: Particle = {
-      x: Math.floor(x / 4) * 4,
-      y: Math.floor(y / 4) * 4,
-      color: '#c2b280',
-    };
-    this.particles.push(particle);
-    if (!this.isAnimating) {
-      this.startAnimation();
-    }
-  }
-
-  updateParticles() {
-    let particlesMoved = false;
-    for (let i = this.particles.length - 1; i >= 0; i--) {
-      const particle = this.particles[i];
-      if (particle.y + 4 < this.canvas!.height &&
-          !this.particles.some(p => p.x === particle.x && p.y === particle.y + 4)) {
-        particle.y += 4;
-        particlesMoved = true;
-      }
-    }
-    return particlesMoved;
-  }
-
-  drawParticles() {
-    if (!this.ctx || !this.canvas) return;
-    this.ctx.fillStyle = '#87CEEB';
-    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-    this.particles.forEach(particle => {
-      this.ctx!.fillStyle = particle.color;
-      this.ctx!.fillRect(particle.x, particle.y, 4, 4);
-    });
-  }
-
-  animate = () => {
-    console.log('Animation frame running');
-    const particlesMoved = this.updateParticles();
-    this.drawParticles();
-
-    if (particlesMoved) {
-      this.animationFrameId = requestAnimationFrame(this.animate);
-    } else {
-      console.log('Animation stopped');
-      this.isAnimating = false;
-      this.animationFrameId = null;
-    }
-  }
-
-  startAnimation() {
-    if (!this.isAnimating) {
-      console.log('Animation started');
-      this.isAnimating = true;
-      this.animationFrameId = requestAnimationFrame(this.animate);
-    }
-  }
-
-  stopAnimation() {
-    if (this.animationFrameId) {
-      cancelAnimationFrame(this.animationFrameId);
-      this.isAnimating = false;
-      this.animationFrameId = null;
-    }
-  }
-}
-
-const CANVAS_WIDTH = 400;
-const CANVAS_HEIGHT = 400;
 
 const SandCanvas: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const simulationRef = useRef<SandSimulation | null>(null);
+  const isDrawingRef = useRef(false);
+  const lastPositionRef = useRef<{ x: number; y: number } | null>(null);
+  const particleIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (canvasRef.current) {
-      const canvas = canvasRef.current;
-      canvas.width = CANVAS_WIDTH;
-      canvas.height = CANVAS_HEIGHT;
-      simulationRef.current = new SandSimulation(canvas);
+      simulationRef.current = new SandSimulation(canvasRef.current, {
+        width: 400,
+        height: 400,
+        particleSize: 4,
+        gravity: 1,
+        sandColor: '#c2b280',
+        backgroundColor: '#87CEEB',
+        particleRate: 50
+      });
     }
 
     return () => {
       simulationRef.current?.stopAnimation();
+      if (particleIntervalRef.current) {
+        clearInterval(particleIntervalRef.current);
+      }
     };
   }, []);
 
-  const handleMouseDown = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
-    console.log('Mouse down');
-    const { offsetX, offsetY } = event.nativeEvent;
-    simulationRef.current?.addParticle(offsetX, offsetY);
+  const addParticle = useCallback(() => {
+    if (lastPositionRef.current && simulationRef.current) {
+      const { x, y } = lastPositionRef.current;
+      simulationRef.current.addParticle(x, y);
+    }
   }, []);
 
-  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
-    if (event.buttons !== 1) return; // Only add particles if the left mouse button is pressed
-    console.log('Mouse move while drawing');
-    const { offsetX, offsetY } = event.nativeEvent;
-    simulationRef.current?.addParticle(offsetX, offsetY);
+  const startDrawing = useCallback((x: number, y: number) => {
+    isDrawingRef.current = true;
+    lastPositionRef.current = { x, y };
+    addParticle();
+
+    if (particleIntervalRef.current) {
+      clearInterval(particleIntervalRef.current);
+    }
+
+    const intervalTime = 1000 / simulationRef.current!.config.particleRate;
+    particleIntervalRef.current = window.setInterval(addParticle, intervalTime);
+  }, [addParticle]);
+
+  const stopDrawing = useCallback(() => {
+    isDrawingRef.current = false;
+    lastPositionRef.current = null;
+    if (particleIntervalRef.current) {
+      clearInterval(particleIntervalRef.current);
+      particleIntervalRef.current = null;
+    }
   }, []);
+
+  const handleMouseDown = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    const { offsetX, offsetY } = event.nativeEvent;
+    startDrawing(offsetX, offsetY);
+  }, [startDrawing]);
+
+  const handleMouseMove = useCallback((event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawingRef.current) return;
+    const { offsetX, offsetY } = event.nativeEvent;
+    lastPositionRef.current = { x: offsetX, y: offsetY };
+  }, []);
+
+  const handleMouseUp = useCallback(() => {
+    stopDrawing();
+  }, [stopDrawing]);
+
+  const handleMouseLeave = useCallback(() => {
+    stopDrawing();
+  }, [stopDrawing]);
 
   return (
     <canvas
       ref={canvasRef}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+      onMouseLeave={handleMouseLeave}
     />
   );
 };
