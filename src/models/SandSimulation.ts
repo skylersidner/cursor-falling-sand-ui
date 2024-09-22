@@ -6,14 +6,20 @@ interface Particle {
     color: string;
   }
   
+  export interface ColorScheme {
+    sandColor: string;
+    backgroundColor: string;
+  }
+
   export interface SimulationConfig {
     width: number;
     height: number;
     particleSize: number;
     gravity: number;
-    sandColor: string; // Now a hex string
-    backgroundColor: string;
-    particleRate: number; // New: particles per second
+    colorScheme: ColorScheme;
+    particleRate: number;
+    colorMode: 'specific' | 'random' | 'themed';
+    theme: 'light' | 'dark' | 'rainbow';
   }
   
   export class SandSimulation {
@@ -47,14 +53,20 @@ interface Particle {
     }
   
     private getVariedSandColor(): string {
-      const baseColor = this.hexToRgb(this._config.sandColor);
-      if (!baseColor) return this._config.sandColor;
+      const baseColor = this.hexToRgb(this._config.colorScheme.sandColor);
+      if (!baseColor) return this._config.colorScheme.sandColor;
 
-      const variation = 1;
-      const r = this.clamp(baseColor.r + (Math.random() < 0.5 ? -variation : variation), 0, 255);
-      const g = this.clamp(baseColor.g + (Math.random() < 0.5 ? -variation : variation), 0, 255);
-      const b = this.clamp(baseColor.b + (Math.random() < 0.5 ? -variation : variation), 0, 255);
-      return `rgb(${r}, ${g}, ${b})`;
+      // Apply variation to only 10% of particles
+      if (Math.random() < 0.1) {
+        const variation = 6;
+        const r = this.clamp(baseColor.r + (Math.random() < 0.5 ? -variation : variation), 0, 255);
+        const g = this.clamp(baseColor.g + (Math.random() < 0.5 ? -variation : variation), 0, 255);
+        const b = this.clamp(baseColor.b + (Math.random() < 0.5 ? -variation : variation), 0, 255);
+        return `rgb(${r}, ${g}, ${b})`;
+      } else {
+        // Return the base color for 90% of particles
+        return `rgb(${baseColor.r}, ${baseColor.g}, ${baseColor.b})`;
+      }
     }
 
     private hexToRgb(hex: string): { r: number; g: number; b: number } | null {
@@ -124,7 +136,7 @@ interface Particle {
   
     private drawParticles() {
       if (!this.ctx || !this.canvas) return;
-      this.ctx.fillStyle = this._config.backgroundColor;
+      this.ctx.fillStyle = this._config.colorScheme.backgroundColor;
       this.ctx.fillRect(0, 0, this._config.width, this._config.height);
       this.particles.forEach(particle => {
         this.ctx!.fillStyle = particle.color;

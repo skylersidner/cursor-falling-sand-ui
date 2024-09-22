@@ -3,3 +3,130 @@
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     gap: 8px;
 }
+
+.sand-toolbar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas: "color size";
+  gap: 20px;
+  padding: 20px;
+  background-color: #f0f0f0;
+  border-radius: 8px;
+}
+
+.color-section {
+  grid-area: color;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas:
+    "title title"
+    "inputs mode";
+  gap: 10px;
+
+  h3 {
+    grid-area: title;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+  }
+}
+
+.color-inputs {
+  grid-area: inputs;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.color-mode {
+  grid-area: mode;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 5px;
+}
+
+.input-group, .radio-group {
+  display: contents;
+
+  label {
+    justify-self: end;
+  }
+
+  input[type="color"] {
+    width: 50px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+  }
+}
+
+.radio-group {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 5px;
+
+  input[type="radio"] {
+    justify-self: end;
+  }
+
+  label {
+    justify-self: start;
+  }
+
+  select {
+    justify-self: start;
+    padding: 2px 5px;
+  }
+}
+
+// Specific styling for the "Themed" option
+.radio-group:last-child {
+  grid-template-columns: auto auto auto 1fr;
+
+  select {
+    grid-column: 3;
+  }
+}
+
+.size-section {
+  grid-area: size;
+}
+
+.color-section,
+.size-section {
+  h3 {
+    margin-bottom: 10px;
+    font-size: 1.2em;
+  }
+}
+
+.color-inputs,
+.size-inputs {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.input-group {
+  display: contents;
+
+  label {
+    justify-self: end;
+  }
+
+  input[type="color"] {
+    width: 50px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+  }
+
+  input[type="number"] {
+    width: 60px;
+    padding: 5px;
+  }
+}
