@@ -3,18 +3,7 @@ import './App.scss'
 import SandCanvas from './components/SandCanvas/SandCanvas'
 import SandToolbar from './components/SandToolbar/SandToolbar';
 import { SimulationConfig } from './models/SandSimulation';
-
-const defaultConfig: SimulationConfig = {
-  width: 400,
-  height: 400,
-  particleSize: 4,
-  gravity: 1,
-  sandColorRed: 194,
-  sandColorGreen: 178,
-  sandColorBlue: 128,
-  backgroundColor: '#87CEEB',
-  particleRate: 50
-};
+import defaultConfig from './configuration/defaultSimulationConfig';
 
 function App() {
   const [config, setConfig] = useState<SimulationConfig>(defaultConfig);

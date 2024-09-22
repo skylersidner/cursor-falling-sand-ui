@@ -1,3 +1,5 @@
+import defaultConfig from "../configuration/defaultSimulationConfig";
+
 interface Particle {
     x: number;
     y: number;
@@ -9,9 +11,7 @@ interface Particle {
     height: number;
     particleSize: number;
     gravity: number;
-    sandColorRed: number;
-    sandColorGreen: number;
-    sandColorBlue: number;
+    sandColor: string; // Now a hex string
     backgroundColor: string;
     particleRate: number; // New: particles per second
   }
@@ -24,23 +24,12 @@ interface Particle {
     private animationFrameId: number | null = null;
     private isAnimating = false;
   
-    constructor(canvas: HTMLCanvasElement, config: Partial<SimulationConfig | null | undefined> = {}) {
+    constructor(canvas: HTMLCanvasElement, config: SimulationConfig = defaultConfig) {
       this.canvas = canvas;
       this.ctx = canvas.getContext('2d');
   
       // Default configuration
-      this._config = {
-        width: 400,
-        height: 400,
-        particleSize: 4,
-        gravity: 1,
-        sandColorRed: 194,   // Default sand color (194, 178, 128)
-        sandColorGreen: 178,
-        sandColorBlue: 128,
-        backgroundColor: '#87CEEB',
-        particleRate: 50,
-        ...config
-      };
+      this._config = config
   
       this.resizeCanvas();
     }
@@ -57,15 +46,35 @@ interface Particle {
       }
     }
   
-    private getSandColor(): string {
-      return `rgb(${this._config.sandColorRed}, ${this._config.sandColorGreen}, ${this._config.sandColorBlue})`;
+    private getVariedSandColor(): string {
+      const baseColor = this.hexToRgb(this._config.sandColor);
+      if (!baseColor) return this._config.sandColor;
+
+      const variation = 1;
+      const r = this.clamp(baseColor.r + (Math.random() < 0.5 ? -variation : variation), 0, 255);
+      const g = this.clamp(baseColor.g + (Math.random() < 0.5 ? -variation : variation), 0, 255);
+      const b = this.clamp(baseColor.b + (Math.random() < 0.5 ? -variation : variation), 0, 255);
+      return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    private hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16)
+      } : null;
+    }
+  
+    private clamp(value: number, min: number, max: number): number {
+      return Math.min(Math.max(value, min), max);
     }
   
     addParticle(x: number, y: number) {
       const particle: Particle = {
         x: Math.floor(x / this._config.particleSize) * this._config.particleSize,
         y: Math.floor(y / this._config.particleSize) * this._config.particleSize,
-        color: this.getSandColor(),
+        color: this.getVariedSandColor()
       };
       this.particles.push(particle);
       if (!this.isAnimating) {
