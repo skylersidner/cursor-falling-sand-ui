@@ -24,7 +24,7 @@ interface Particle {
     private animationFrameId: number | null = null;
     private isAnimating = false;
   
-    constructor(canvas: HTMLCanvasElement, config: Partial<SimulationConfig> = {}) {
+    constructor(canvas: HTMLCanvasElement, config: Partial<SimulationConfig | null | undefined> = {}) {
       this.canvas = canvas;
       this.ctx = canvas.getContext('2d');
   
