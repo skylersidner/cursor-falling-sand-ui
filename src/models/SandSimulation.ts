@@ -53,20 +53,38 @@ interface Particle {
     }
   
     private getVariedSandColor(): string {
-      const baseColor = this.hexToRgb(this._config.colorScheme.sandColor);
-      if (!baseColor) return this._config.colorScheme.sandColor;
+      let baseColor: { r: number; g: number; b: number };
 
-      // Apply variation to only 10% of particles
-      if (Math.random() < 0.1) {
-        const variation = 6;
-        const r = this.clamp(baseColor.r + (Math.random() < 0.5 ? -variation : variation), 0, 255);
-        const g = this.clamp(baseColor.g + (Math.random() < 0.5 ? -variation : variation), 0, 255);
-        const b = this.clamp(baseColor.b + (Math.random() < 0.5 ? -variation : variation), 0, 255);
-        return `rgb(${r}, ${g}, ${b})`;
-      } else {
-        // Return the base color for 90% of particles
-        return `rgb(${baseColor.r}, ${baseColor.g}, ${baseColor.b})`;
+      switch (this._config.colorMode) {
+        case 'specific':
+          baseColor = this.hexToRgb(this._config.colorScheme.sandColor) || { r: 223, g: 179, b: 48 }; // fallback to #dfb330
+          break;
+        case 'random':
+          baseColor = {
+            r: Math.floor(Math.random() * 256),
+            g: Math.floor(Math.random() * 256),
+            b: Math.floor(Math.random() * 256)
+          };
+          break;
+        case 'themed':
+          baseColor = { r: 255, g: 255, b: 255 }; // White for now, we'll implement themes later
+          break;
+        default:
+          baseColor = this.hexToRgb(this._config.colorScheme.sandColor) || { r: 223, g: 179, b: 48 }; // fallback to #dfb330
       }
+
+      return this.applyColorVariation(baseColor);
+    }
+
+    private applyColorVariation(baseColor: { r: number; g: number; b: number }): string {
+      const variation = 6;
+      
+      // Apply variation to all particles
+      const r = this.clamp(baseColor.r + (Math.random() * 2 - 1) * variation, 0, 255);
+      const g = this.clamp(baseColor.g + (Math.random() * 2 - 1) * variation, 0, 255);
+      const b = this.clamp(baseColor.b + (Math.random() * 2 - 1) * variation, 0, 255);
+
+      return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
     }
 
     private hexToRgb(hex: string): { r: number; g: number; b: number } | null {
